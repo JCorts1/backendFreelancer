@@ -1,0 +1,61 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Each freelancer who uses your app
+model User {
+  id    Int     @id @default(autoincrement())
+  email String @unique
+  name String
+  customers Customer[]
+  projects  Project[]
+}
+
+// A customer belonging to a User (freelancer)
+model Customer {
+  id      Int      @id @default(autoincrement())
+  name    String
+  phone   String?
+  address String?
+  email   String?
+  notes   String?
+  // Relation to the User (freelancer)
+  user    User @relation(fields: [userId], references: [id])
+  userId  Int
+  // Many-to-many relation to Project
+  projects CustomersOnProjects[]
+}
+
+model Project {
+  id      Int      @id @default(autoincrement())
+  name    String
+  notes   String?
+  price   Float?
+  // Relation to the User (freelancer)
+  user    User @relation(fields: [userId], references: [id])
+  userId  Int
+  // Many-to-many relation to Customer
+  customers CustomersOnProjects[]
+}
+
+// The "join table" for the many-to-many relationship
+model CustomersOnProjects {
+  customer    Customer @relation(fields: [customerId], references: [id])
+  customerId  Int
+  project     Project  @relation(fields: [projectId], references: [id])
+  projectId   Int
+
+  @@id([customerId, projectId])
+}
